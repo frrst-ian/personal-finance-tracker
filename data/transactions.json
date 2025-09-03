@@ -1,0 +1,12 @@
+{
+  "transactions": [
+    {
+      "id": 1,
+      "type": "expense",
+      "description": "Coffee",
+      "amount": 5.50,
+      "category": "Food",
+      "date": "2025-09-02"
+    }
+  ]
+}
