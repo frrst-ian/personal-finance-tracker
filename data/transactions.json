@@ -4,9 +4,25 @@
       "id": 1,
       "type": "expense",
       "description": "Coffee",
-      "amount": 5.50,
+      "amount": 5.5,
       "category": "Food",
       "date": "2025-09-02"
+    },
+    {
+      "id": 2,
+      "type": "Expense",
+      "description": "Peanut BUTTer",
+      "amount": "130",
+      "category": "Food",
+      "date": "2025-09-04"
+    },
+    {
+      "id": 3,
+      "type": "Income",
+      "description": "Construction Fund",
+      "amount": "2,000,000",
+      "category": "Tax Money(Money Laundered)",
+      "date": "2025-09-04"
     }
   ]
 }
