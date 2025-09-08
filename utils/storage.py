@@ -2,14 +2,17 @@ import json
 from datetime import datetime
 import os
 
-# data = open("../data/transactions.json", "r")
+# Use script’s location to find transactions.json
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_FILE = os.path.join(BASE_DIR, "..", "data", "transactions.json")
+
 
 def load_data():
-# Check if file exists
-    if os.path.exists("../data/transactions.json"):
+    # Check if file exists
+    if os.path.exists(DATA_FILE):
 
-# If exists: read JSON file and return data
-        with open("../data/transactions.json", "r") as file:
+        # If exists: read JSON file and return data
+        with open(DATA_FILE, "r") as file:
             # Handle JSON decode errors
             try:
                 data = json.load(file)
@@ -22,11 +25,12 @@ def load_data():
 # If not exists: return default structure with empty expenses/income lists
     else:
         print("Starting with empty transaction.")
-        return {"transactions":[]}
+        return {"transactions": []}
+
 
 def save_data(data):
-# Write data dictionary to JSON file
-    with open("../data/transactions.json", "w") as file:
+    # Write data dictionary to JSON file
+    with open(DATA_FILE, "w") as file:
         # Handle file write errors
         try:
             json.dump(data, file, indent=2)
@@ -38,6 +42,7 @@ def save_data(data):
             print(f"Error converting data to JSON: {e}")
             return False
 # Maybe backup existing file first
+
 
 def add_expense(description, amount, category):
     date_time = datetime.now()
@@ -64,6 +69,7 @@ def add_expense(description, amount, category):
     success = save_data(data)
     # Return success/failure
     return success
+
 
 def add_income(description, amount, category):
     date_time = datetime.now()
@@ -92,6 +98,7 @@ def add_income(description, amount, category):
     # Return success/failure
     return success
 
+
 def get_all_expenses():
 
     # Load data
@@ -103,6 +110,7 @@ def get_all_expenses():
             expenses.append(transaction)
 
     return expenses
+
 
 def get_all_income():
 
@@ -117,30 +125,50 @@ def get_all_income():
 
     return income
 
+
 def get_summary():
-    # Load data
+    """
+    Calculate and return a financial summary:
+    - Total income
+    - Total expense
+    - Net balance (income - expense)
+    - Optional breakdown by expense category
+    """
+
     data = load_data()
 
-    # Calculate total income, total expenses, net balance
-    total_income = 0
-    total_expense = 0
-    for transaction in data["transactions"]:
-        if transaction["type"] == "Income":
-            total_income = total_income + transaction["amount"]
-        elif transaction["type"] == "Expense":
-            total_expense = total_expense + transaction["amount"]
+    if not data["transactions"]:
+        # No transactions yet → return all zeros
+        return {
+            "total_income": 0.0,
+            "total_expense": 0.0,
+            "net_balance": 0.0,
+            "categories": {}
+        }
 
+    # Ensure consistent handling of income/expense
+    total_income = sum(float(t["amount"])
+                       for t in data["transactions"] if t["type"].lower() == "income")
+    total_expense = sum(float(t["amount"])
+                        for t in data["transactions"] if t["type"].lower() == "expense")
+
+    # Optional: breakdown of expenses by category
+    categories = {}
+    for t in data["transactions"]:
+        if t["type"].lower() == "expense":
+            categories[t["category"]] = categories.get(t["category"], 0.0) + float(t["amount"])
+
+    # Net balance = income - expense
     net_balance = total_income - total_expense
 
-    summary_dict = {
+    return {
         "total_income": total_income,
         "total_expense": total_expense,
-        "net_balance": net_balance
+        "net_balance": net_balance,
+        "categories": categories
     }
-    # Return summary dictionary
-    return summary_dict
 
- ##### FOR DEBUGGING
+# FOR DEBUGGING
     # print("Loaded data:", data)
     # print("Number of transactions:", len(data["transactions"]))
     # for transaction in data["transactions"]:
