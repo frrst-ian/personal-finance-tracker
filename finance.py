@@ -1,6 +1,6 @@
 import argparse
 import sys
-from utils import storage
+from utils import calculator
 
 """
 Personal Finance Tracker - CLI tool for managing expenses and income
@@ -19,11 +19,12 @@ def main():
 
     expense_parser.add_argument("description", help="Description of the expense")
     expense_parser.add_argument("amount", type=float, help="Amount of the expense")
+    expense_parser.add_argument("-c", "--category", default="General", help="Category of the expense (Optional)")
 
     args = parser.parse_args()
 
     if args.command == 'summary':
-        summary = storage.get_summary()
+        summary = calculator.get_summary()
         # Format numbers with commas, 2 decimals, and align in a neat column
         print("\n--- Financial Summary ---")
         print(f"Total income  :  ${summary['total_income']:,.2f}")
@@ -41,7 +42,14 @@ def main():
         if args.amount <= 0:
             print("Amount should have positive values")
             sys.exit(1)
-        print(f"Added expense: {args.description} ${args.amount}")
+        # Call add_expense function
+        expense = calculator.add_expense(
+            args.description, args.amount, args.category)
+        if expense:
+            print(
+                f"Added expense: {expense['description']} ${expense['amount']:,.2f} {expense['category']}")
+        else:
+            print("Failed to save expense")
 
 
 if __name__ == "__main__":

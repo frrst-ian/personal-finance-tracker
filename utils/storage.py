@@ -40,5 +40,3 @@ def save_data(data):
         except (TypeError, ValueError) as e:
             print(f"Error converting data to JSON: {e}")
             return False
-# Maybe backup existing file first
-

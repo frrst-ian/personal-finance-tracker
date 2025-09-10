@@ -23,6 +23,14 @@
       "amount": 2000000,
       "category": "Tax Money(Money Laundered)",
       "date": "2025-09-04"
+    },
+    {
+      "id": 4,
+      "type": "expense",
+      "description": "Pamasahe",
+      "amount": 20.0,
+      "category": "transport",
+      "date": "2025-09-10"
     }
   ]
 }
