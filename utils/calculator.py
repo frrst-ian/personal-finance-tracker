@@ -127,3 +127,24 @@ def get_summary():
         "net_balance": net_balance,
         "categories": categories
     }
+
+def get_specific_category(category):
+    if not category:
+        return storage.data["transactions"]
+
+    #Load the data
+    data = storage.load_data()
+
+    #Create empty list to store category found in transaction
+    categories = []
+
+    for transaction in data["transactions"]:
+        if transaction["category"].lower() == category.lower():
+            categories.append(transaction)
+
+    if not categories:
+        return "Category not found"
+    else:
+        return categories
+
+
