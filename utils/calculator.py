@@ -1,14 +1,8 @@
-import storage
+from utils import storage
 from datetime import datetime
-import json
-import os
-
-# Use script’s location to find transactions.json
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_FILE = os.path.join(BASE_DIR, "..", "data", "transactions.json")
 
 
-def add_expense(description, amount, category):
+def add_expense(description, amount, category="General"):
     date_time = datetime.now()
     # Load existing data
     data = storage.load_data()
@@ -23,7 +17,7 @@ def add_expense(description, amount, category):
         "type": "expense",
         "description": description,
         "amount": amount,
-        "category": category,
+        "category": category or "General",
         "date": date_time.strftime("%Y-%m-%d")
     }
 
@@ -31,8 +25,10 @@ def add_expense(description, amount, category):
     data["transactions"].append(new_expense)
     # Save updated data
     success = storage.save_data(data)
-    # Return success/failure
-    return success
+    if success:
+        return new_expense   # return the expense dict
+    else:
+        return False         # or None
 
 
 def add_income(description, amount, category):
@@ -131,10 +127,3 @@ def get_summary():
         "net_balance": net_balance,
         "categories": categories
     }
-
-# FOR DEBUGGING
-    # print("Loaded data:", data)
-    # print("Number of transactions:", len(data["transactions"]))
-    # for transaction in data["transactions"]:
-    #     print("Transaction type:", transaction.get("type"))
-#####
