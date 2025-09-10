@@ -4,7 +4,7 @@ from utils import calculator
 
 """
 Personal Finance Tracker - CLI tool for managing expenses and income
-Usage: python finance.py [summary|add-expense] [args...]
+Usage: python finance.py [summary|add-expense][add-income] [args...]
 """
 
 
@@ -16,10 +16,15 @@ def main():
 
     summary_parser = subparsers.add_parser('summary', help="Show financial summary")
     expense_parser = subparsers.add_parser("add-expense", help="Add expense")
+    income_parser = subparsers.add_parser("add-income", help="Add income")
 
     expense_parser.add_argument("description", help="Description of the expense")
     expense_parser.add_argument("amount", type=float, help="Amount of the expense")
     expense_parser.add_argument("-c", "--category", default="General", help="Category of the expense (Optional)")
+
+    income_parser.add_argument("description", help="Description of the income")
+    income_parser.add_argument("amount", type=float, help="Amount of the income")
+    income_parser.add_argument("-c", "--category", default="General", help="Category of the income (Optional)")
 
     args = parser.parse_args()
 
@@ -50,6 +55,20 @@ def main():
                 f"Added expense: {expense['description']} ${expense['amount']:,.2f} {expense['category']}")
         else:
             print("Failed to save expense")
+
+    elif args.command == 'add-income':
+        # Amount must always be positive
+        if args.amount <= 0:
+            print("Amount should have positive values")
+            sys.exit(1)
+        # Call add_expense function
+        income = calculator.add_income(
+            args.description, args.amount, args.category)
+        if income:
+            print(
+                f"Added income: {income['description']} ${income['amount']:,.2f} {income['category']}")
+        else:
+            print("Failed to save income")
 
 
 if __name__ == "__main__":
