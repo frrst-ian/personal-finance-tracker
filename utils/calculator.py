@@ -1,8 +1,38 @@
 from utils import storage
 from datetime import datetime
 
+def validate_input(description, amount, category):
+    data_to_check = {
+        "description": description,
+        "amount": amount,
+        "category": category
+    }
+
+    rule_validation = {
+        "description": "non_empty_string",
+        "amount":  "positive number",
+        "category": "non_empty_string"
+    }
+
+    for key, value in data_to_check.items():
+        rule = rule_validation[key]
+
+        if rule == "non_empty_string":
+            if not isinstance(value, str) or not value.strip():
+                return {"success": False, "error": f"{key.title()} must not be an empty string."}
+        elif rule == "positive number":
+            if not isinstance(value, (int, float)) or value <= 0:
+                return {"success": False, "error": f"{key.title()} must not be less than 0"}
+
+    return {"success": True}
 
 def add_expense(description, amount, category="General"):
+    # Validate inputs
+    validation_result = validate_input(description,amount,category)
+
+    if not validation_result["success"]:
+        return validation_result
+
     date_time = datetime.now()
     # Load existing data
     data = storage.load_data()
@@ -32,6 +62,12 @@ def add_expense(description, amount, category="General"):
 
 
 def add_income(description, amount, category):
+    #Validate inputs
+    validation_result = validate_input(description, amount, category)
+
+    if not validation_result["success"]:
+        return validation_result
+
     date_time = datetime.now()
     # Load existing data
     data = storage.load_data()
