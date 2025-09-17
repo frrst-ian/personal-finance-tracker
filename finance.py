@@ -17,6 +17,7 @@ def main():
     summary_parser = subparsers.add_parser('summary', help="Show financial summary")
     expense_parser = subparsers.add_parser("add-expense", help="Add expense")
     income_parser = subparsers.add_parser("add-income", help="Add income")
+    list_parser = subparsers.add_parser("list", help="List recent transactions")
 
     expense_parser.add_argument("description", help="Description of the expense")
     expense_parser.add_argument("amount", type=float, help="Amount of the expense")
@@ -24,7 +25,10 @@ def main():
 
     income_parser.add_argument("description", help="Description of the income")
     income_parser.add_argument("amount", type=float, help="Amount of the income")
-    income_parser.add_argument("-c", "--category", default="General", help="Category of the income (Optional)")
+    income_parser.add_argument("-s", "--source", default="General", help="Source of the income (Optional)")
+
+    list_parser.add_argument("--last", type=int, default=10,
+                             help="Show only the last N transactions")
 
     args = parser.parse_args()
 
@@ -63,12 +67,14 @@ def main():
             sys.exit(1)
         # Call add_expense function
         income = calculator.add_income(
-            args.description, args.amount, args.category)
+            args.description, args.amount, args.source)
         if income:
             print(
-                f"Added income: {income['description']} ${income['amount']:,.2f} {income['category']}")
+                f"Added income: {income['description']} ${income['amount']:,.2f} {income['source']}")
         else:
             print("Failed to save income")
+    elif args.command == 'list':
+        calculator.list_transactions(args.last)
 
 
 if __name__ == "__main__":

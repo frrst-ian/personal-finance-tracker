@@ -31,7 +31,7 @@ def add_expense(description, amount, category="General"):
         return False         # or None
 
 
-def add_income(description, amount, category):
+def add_income(description, amount, source):
     date_time = datetime.now()
     # Load existing data
     data = storage.load_data()
@@ -47,7 +47,7 @@ def add_income(description, amount, category):
         "type": "income",
         "description": description,
         "amount": amount,
-        "category": category,
+        "source": source,
         "date": date_time.strftime("%Y-%m-%d")
     }
 
