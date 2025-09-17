@@ -91,8 +91,10 @@ def add_income(description, amount, category):
     data["transactions"].append(new_income)
     # Save updated data
     success = storage.save_data(data)
-    # Return success/failure
-    return success
+    if success:
+        return new_income   # return the expense dict
+    else:
+        return False         # or None
 
 
 def get_all_expenses():
