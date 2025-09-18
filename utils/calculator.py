@@ -129,3 +129,12 @@ def get_specific_category(category):
 
     filtered = [t for t in data["transactions"] if t.get("category", "").lower() == category.lower()]
     return filtered if filtered else "Category not found"
+
+def list_transactions(transactions_to_show):
+    #Load the data
+    data = storage.load_data()
+    # Get the transactions
+    recent_transaction = data["transactions"][-transactions_to_show:]
+    # Show the requested number
+    return recent_transaction
+
