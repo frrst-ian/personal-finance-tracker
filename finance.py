@@ -17,7 +17,7 @@ def main():
     summary_parser = subparsers.add_parser('summary', help="Show financial summary")
     expense_parser = subparsers.add_parser("add-expense", help="Add expense")
     income_parser = subparsers.add_parser("add-income", help="Add income")
-    list_parser = subparsers.add_parser("list", help="List recent transactions")
+    list_parser = subparsers.add_parser("list", help="List recent transactions with optional filters")
 
     expense_parser.add_argument("description", help="Description of the expense")
     expense_parser.add_argument("amount", type=float, help="Amount of the expense")
@@ -28,7 +28,10 @@ def main():
     income_parser.add_argument("-s", "--source", default="General", help="Source of the income (Optional)")
 
     list_parser.add_argument("--last", type=int, default=10,
-                             help="Show only the last N transactions")
+                             help="Show only the last N transactions (default: 10)")
+    list_parser.add_argument("--category", help="Filter by category (for expenses) or source (for income)")
+    list_parser.add_argument("--from-date", help="Filter transactions from this date (YYYY-MM-DD)")
+    list_parser.add_argument("--to-date", help="Filter transactions up to this date (YYYY-MM-DD)")
 
     args = parser.parse_args()
 
@@ -74,7 +77,7 @@ def main():
         else:
             print("Failed to save income")
     elif args.command == 'list':
-        calculator.list_transactions(args.last)
+        calculator.list_transactions(args.last, args.category, args.from_date, args.to_date)
 
 
 if __name__ == "__main__":

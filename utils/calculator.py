@@ -1,17 +1,25 @@
 from utils import storage
 from datetime import datetime
 
-def validate_input(description, amount, field_name):
+
+def validate_input(description, amount, extra_value, extra_key_name):
+    labels = {
+        "description": "Description",
+        "amount": "Amount",
+        "category": "Category",
+        "source": "Source"
+    }
+
     data_to_check = {
         "description": description,
         "amount": amount,
-        field_name: field_name
+        extra_key_name: extra_value
     }
 
     rule_validation = {
         "description": "non_empty_string",
         "amount": "positive number",
-        field_name: "non_empty_string"
+        extra_key_name: "non_empty_string"
     }
 
     for key, value in data_to_check.items():
@@ -19,16 +27,16 @@ def validate_input(description, amount, field_name):
 
         if rule == "non_empty_string":
             if not isinstance(value, str) or not value.strip():
-                return {"success": False, "error": f"{key.title()} must not be an empty string."}
+                return {"success": False, "error": f"{labels[key]} must not be empty."}
         elif rule == "positive number":
             if not isinstance(value, (int, float)) or value <= 0:
-                return {"success": False, "error": f"{key.title()} must be greater than 0"}
+                return {"success": False, "error": f"{labels[key]} must be a positive number."}
 
     return {"success": True}
 
 
 def add_expense(description, amount, category="General"):
-    validation_result = validate_input(description, amount, category)
+    validation_result = validate_input(description, amount, category, "category")
     if not validation_result["success"]:
         return validation_result
 
@@ -50,7 +58,7 @@ def add_expense(description, amount, category="General"):
 
 
 def add_income(description, amount, source="General"):
-    validation_result = validate_input(description, amount, source)
+    validation_result = validate_input(description, amount, source, "source")
     if not validation_result["success"]:
         return validation_result
 
