@@ -92,21 +92,33 @@ def get_all_income():
 def get_summary():
     data = storage.load_data()
     if not data["transactions"]:
-        return {"total_income": 0.0, "total_expense": 0.0, "net_balance": 0.0, "categories": {}}
+        return {
+            "total_income": 0.0,
+            "total_expense": 0.0,
+            "net_balance": 0.0,
+            "categories": {},
+            "income_sources": {}
+        }
 
     total_income = sum(float(t["amount"]) for t in data["transactions"] if t["type"].lower() == "income")
     total_expense = sum(float(t["amount"]) for t in data["transactions"] if t["type"].lower() == "expense")
 
     categories = {}
+    income_sources = {}
+
     for t in data["transactions"]:
         if t["type"].lower() == "expense":
             categories[t["category"]] = categories.get(t["category"], 0.0) + float(t["amount"])
+        elif t["type"].lower() == "income":
+            source = t.get("source", "General")  # <--- safe access
+            income_sources[source] = income_sources.get(source, 0.0) + float(t["amount"])
 
     return {
         "total_income": total_income,
         "total_expense": total_expense,
         "net_balance": total_income - total_expense,
-        "categories": categories
+        "categories": categories,
+        "income_sources": income_sources
     }
 
 
