@@ -2,106 +2,113 @@ import argparse
 import sys
 from utils import calculator
 
-"""
-Personal Finance Tracker - CLI tool for managing expenses and income
-Usage: python finance.py [summary|add-expense][add-income] [args...]
-"""
-
 
 class Colors:
-    GREEN = "\033[92m"   # for income
-    RED = "\033[91m"     # for expenses
-    YELLOW = "\033[93m"  # for balance
-    BLUE = "\033[94m"    # for headings or info
-    RESET = "\033[0m"    # reset to default
+    GREEN = "\033[92m"
+    RED = "\033[91m"
+    YELLOW = "\033[93m"
+    BLUE = "\033[94m"
+    RESET = "\033[0m"
 
 
 def main():
     parser = argparse.ArgumentParser(
         description="Personal Finance Tracker",
         epilog="""Examples: python finance.py exp "Coffee" 5.50 -c Food
-          python finance.py inc "Salary" 1000 -s Job
+  python finance.py inc "Salary" 1000 -s Job
   python finance.py sum
   python finance.py ls --last 5
   python finance.py ls --category Food
   python finance.py ls --from-date 2025-09-01 --to-date 2025-09-18
-    """,
+""",
         formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    subparsers = parser.add_subparsers(
-        title="command", dest="command", description="available commands")
+    subparsers = parser.add_subparsers(title="command", dest="command", description="available commands")
 
-    summary_parser = subparsers.add_parser('summary', aliases=["sum"], help="Show financial summary")
-    expense_parser = subparsers.add_parser("add-expense", aliases=["exp"], help="Add expense")
-    income_parser = subparsers.add_parser("add-income", aliases=["inc"], help="Add income")
-    list_parser = subparsers.add_parser("list", aliases=["ls"], help="List recent transactions with optional filters")
+    subparsers.add_parser('summary', aliases=["sum"], help="Show financial summary")
+    subparsers.add_parser("add-expense", aliases=["exp"], help="Add expense")
+    subparsers.add_parser("add-income", aliases=["inc"], help="Add income")
+    subparsers.add_parser("list", aliases=["ls"], help="List recent transactions with optional filters")
 
-    expense_parser.add_argument("description", help="Description of the expense")
-    expense_parser.add_argument("amount", type=float, help="Amount of the expense")
-    expense_parser.add_argument("-c", "--category", default="General", help="Category of the expense (Optional)")
+    parser.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
 
-    income_parser.add_argument("description", help="Description of the income")
-    income_parser.add_argument("amount", type=float, help="Amount of the income")
-    income_parser.add_argument("-s", "--source", default="General", help="Source of the income (Optional)")
+    # quick parse to get command
+    args_partial = parser.parse_known_args()[0]
+    command = None
+    if len(sys.argv) > 1:
+        command = sys.argv[1]
 
-    list_parser.add_argument("--last", type=int, default=10,
-                             help="Show only the last N transactions (default: 10)")
-    list_parser.add_argument("--category", help="Filter by category (for expenses) or source (for income)")
-    list_parser.add_argument("--from-date", help="Filter transactions from this date (YYYY-MM-DD)")
-    list_parser.add_argument("--to-date", help="Filter transactions up to this date (YYYY-MM-DD)")
+    # Build command-specific parser
+    if command in ('add-expense', 'exp'):
+        parser_exp = argparse.ArgumentParser(add_help=False)
+        parser_exp.add_argument('description')
+        parser_exp.add_argument('amount', type=float)
+        parser_exp.add_argument('-c', '--category', default='General')
+        parsed = parser_exp.parse_args(sys.argv[2:])
+        # validate
+        if parsed.amount <= 0:
+            print('Amount should have positive values')
+            sys.exit(1)
+        result = calculator.add_expense(parsed.description, parsed.amount, parsed.category)
+        if not result.get('success'):
+            print('Failed to add expense:', result.get('error'))
+            sys.exit(1)
+        t = result['transaction']
+        print(f"Added expense: {t['description']} ${t['amount']:,.2f} {t['category']}")
+        return
 
-    args = parser.parse_args()
+    if command in ('add-income', 'inc'):
+        parser_inc = argparse.ArgumentParser(add_help=False)
+        parser_inc.add_argument('description')
+        parser_inc.add_argument('amount', type=float)
+        parser_inc.add_argument('-s', '--source', default='General')
+        parsed = parser_inc.parse_args(sys.argv[2:])
+        if parsed.amount <= 0:
+            print('Amount should have positive values')
+            sys.exit(1)
+        result = calculator.add_income(parsed.description, parsed.amount, parsed.source)
+        if not result.get('success'):
+            print('Failed to add income:', result.get('error'))
+            sys.exit(1)
+        t = result['transaction']
+        print(f"Added income: {t['description']} ${t['amount']:,.2f} {t['source']}")
+        return
 
-    if args.command == 'summary':
+    if command in ('summary', 'sum'):
         summary = calculator.get_summary()
-        # Format numbers with commas, 2 decimals, and align in a neat column
         print(f"\n====== Financial Summary ======\n")
         print(f"{'Total income':<15}: {Colors.GREEN}${summary['total_income']:>12,.2f}{Colors.RESET}")
         print(f"{'Total expense':<15}: {Colors.RED}${summary['total_expense']:>12,.2f}{Colors.RESET}")
         print(f"{'Net balance':<15}: {Colors.YELLOW}${summary['net_balance']:>12,.2f}{Colors.RESET}")
-
-        # Print category breakdown if available
-        if "categories" in summary and summary["categories"]:
+        if summary['categories']:
             print(f"\n{Colors.BLUE}By Category:{Colors.RESET}")
-            for category, amount in summary["categories"].items():
-                print(f"  {category:<15}: {Colors.RED}${amount:>12,.2f}{Colors.RESET}")
-
-        if "income_sources" in summary and summary["income_sources"]:
+            for k, v in summary['categories'].items():
+                print(f"  {k:<15}: {Colors.RED}${v:>12,.2f}{Colors.RESET}")
+        if summary['income_sources']:
             print(f"\n{Colors.BLUE}By Source:{Colors.RESET}")
-            for source, amount in summary["income_sources"].items():
-                print(f"  {source:<15}: {Colors.GREEN}${amount:>12,.2f}{Colors.RESET}")
-            print()
+            for k, v in summary['income_sources'].items():
+                print(f"  {k:<15}: {Colors.GREEN}${v:>12,.2f}{Colors.RESET}")
+        return
 
-    elif args.command == 'add-expense':
-        # Amount must always be positive
-        if args.amount <= 0:
-            print("Amount should have positive values")
-            sys.exit(1)
-        # Call add_expense function
-        expense = calculator.add_expense(
-            args.description, args.amount, args.category)
-        if expense:
-            print(
-                f"Added expense: {expense['description']} ${expense['amount']:,.2f} {expense['category']}")
-        else:
-            print("Failed to save expense")
+    if command in ('list', 'ls'):
+        parser_ls = argparse.ArgumentParser(add_help=False)
+        parser_ls.add_argument('--last', type=int, default=10)
+        parser_ls.add_argument('--category')
+        parser_ls.add_argument('--source')
+        parser_ls.add_argument('--from-date')
+        parser_ls.add_argument('--to-date')
+        parsed = parser_ls.parse_args(sys.argv[2:])
 
-    elif args.command == 'add-income':
-        # Amount must always be positive
-        if args.amount <= 0:
-            print("Amount should have positive values")
-            sys.exit(1)
-        # Call add_expense function
-        income = calculator.add_income(
-            args.description, args.amount, args.source)
-        if income:
-            print(
-                f"Added income: {income['description']} ${income['amount']:,.2f} {income['source']}")
-        else:
-            print("Failed to save income")
-    elif args.command == 'list':
-        calculator.list_transactions(args.last, args.category, args.from_date, args.to_date)
+        category_filter = parsed.category
+        source_filter = parsed.source
+
+        calculator.list_transactions(limit=parsed.last, category=category_filter, source=source_filter,
+                                     from_date=parsed.from_date, to_date=parsed.to_date)
+        return
+
+    # No command or unknown
+    parser.print_help()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
